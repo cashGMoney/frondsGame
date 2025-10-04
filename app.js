@@ -196,3 +196,4 @@ async function showResults() {
     resultsDiv.appendChild(resultText);
   }
 }
+document.getElementById("joinButton").addEventListener("click", joinLobby);

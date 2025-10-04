@@ -11,7 +11,7 @@
   <div id="lobby" class="screen">
     <h1>Join the Game</h1>
     <input type="text" id="displayName" placeholder="Enter your name" />
-    <button onclick="joinLobby()">Join Lobby</button>
+    <button id="joinButton">Join Lobby</button>
     <ul id="playerList"></ul>
     <p id="waitingMessage" class="hidden">Waiting for host to start the game...</p>
   </div>
@@ -26,10 +26,8 @@
     <h2>Results</h2>
     <div id="results"></div>
   </div>
-
-  <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js"></script>
   <script src="questions.js"></script>
   <script type="module" src="app.js"></script>
+
 </body>
 </html>

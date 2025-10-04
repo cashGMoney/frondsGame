@@ -1,4 +1,5 @@
-const questions = [
+/* questions.js */
+window.questions = [
   {
     id: "q1",
     text: "What's your favorite color?",

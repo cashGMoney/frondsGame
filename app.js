@@ -1,4 +1,5 @@
-import { initializeApp } from "firebase/app";
+/* app.js */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
 import {
   getFirestore,
   collection,
@@ -6,12 +7,12 @@ import {
   setDoc,
   doc,
   getDocs,
-  getDoc,
+  deleteDoc,
   updateDoc,
   onSnapshot,
   query,
   where
-} from "firebase/firestore";
+} from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBy-C9V_IOMUyapWxVEvjREZIYJ2KoarB8",
@@ -30,7 +31,7 @@ let isHost = false;
 let currentQuestion = 0;
 
 // Join the lobby
-async function joinLobby() {
+export async function joinLobby() {
   const name = document.getElementById("displayName").value;
   if (!name) return alert("Please enter a name");
 
@@ -45,22 +46,17 @@ async function joinLobby() {
 
   if (isHost) {
     await setDoc(doc(db, "gameState", "main"), { started: false });
+    showStartButton();
+    showResetButton();
+  } else {
+    document.getElementById("waitingMessage").classList.remove("hidden");
   }
-  if (!isHost) {
-  document.getElementById("waitingMessage").classList.remove("hidden");
-}
 
   listenToPlayers();
   listenToGameState();
-
-  document.getElementById("lobby").classList.remove("hidden");
-  document.getElementById("questionScreen").classList.add("hidden");
-  document.getElementById("resultsScreen").classList.add("hidden");
-
-  if (isHost) showStartButton();
 }
 
-// Show list of players in lobby
+// Show list of players
 function listenToPlayers() {
   const playerList = document.getElementById("playerList");
   onSnapshot(collection(db, "players"), (snapshot) => {
@@ -73,7 +69,7 @@ function listenToPlayers() {
   });
 }
 
-// Show Start Game button for host
+// Show Start Game button
 function showStartButton() {
   const btn = document.createElement("button");
   btn.textContent = "Start Game";
@@ -81,9 +77,31 @@ function showStartButton() {
   document.getElementById("lobby").appendChild(btn);
 }
 
-// Host starts the game
+// Show Reset Game button
+function showResetButton() {
+  const btn = document.createElement("button");
+  btn.textContent = "Reset Game";
+  btn.onclick = resetGame;
+  document.getElementById("lobby").appendChild(btn);
+}
+
+// Start the game
 async function startGame() {
   await updateDoc(doc(db, "gameState", "main"), { started: true });
+}
+
+// Reset the game
+async function resetGame() {
+  const playersSnap = await getDocs(collection(db, "players"));
+  playersSnap.forEach((docSnap) => deleteDoc(doc(db, "players", docSnap.id)));
+
+  const responsesSnap = await getDocs(collection(db, "responses"));
+  responsesSnap.forEach((docSnap) => deleteDoc(doc(db, "responses", docSnap.id)));
+
+  await setDoc(doc(db, "gameState", "main"), { started: false });
+
+  alert("Game reset. Players can now rejoin.");
+  location.reload();
 }
 
 // Listen for game start
@@ -96,6 +114,7 @@ function listenToGameState() {
   });
 }
 
+// Countdown before game starts
 function startCountdown() {
   const lobby = document.getElementById("lobby");
   const countdown = document.createElement("h2");
@@ -119,8 +138,7 @@ function startCountdown() {
   }, 1000);
 }
 
-
-// Load current question
+// Load a question
 function loadQuestion() {
   const q = questions[currentQuestion];
   document.getElementById("questionText").textContent = q.text;
@@ -135,7 +153,7 @@ function loadQuestion() {
   });
 }
 
-// Submit answer to Firestore
+// Submit answer
 async function submitAnswer(qid, answer) {
   await setDoc(doc(db, "responses", `${playerId}_${qid}`), {
     playerId,
@@ -144,8 +162,8 @@ async function submitAnswer(qid, answer) {
   });
 }
 
-// Go to next question or show results
-function nextQuestion() {
+// Next question or show results
+export function nextQuestion() {
   currentQuestion++;
   if (currentQuestion < questions.length) {
     loadQuestion();
@@ -154,7 +172,7 @@ function nextQuestion() {
   }
 }
 
-// Show aggregated results
+// Show results
 async function showResults() {
   document.getElementById("questionScreen").classList.add("hidden");
   document.getElementById("resultsScreen").classList.remove("hidden");
@@ -164,8 +182,8 @@ async function showResults() {
 
   for (const q of questions) {
     const counts = {};
-
     const resSnap = await getDocs(query(collection(db, "responses"), where("questionId", "==", q.id)));
+
     resSnap.forEach((doc) => {
       const data = doc.data();
       counts[data.answer] = (counts[data.answer] || 0) + 1;

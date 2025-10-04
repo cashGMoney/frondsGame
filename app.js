@@ -46,6 +46,9 @@ async function joinLobby() {
   if (isHost) {
     await setDoc(doc(db, "gameState", "main"), { started: false });
   }
+  if (!isHost) {
+  document.getElementById("waitingMessage").classList.remove("hidden");
+}
 
   listenToPlayers();
   listenToGameState();
@@ -87,12 +90,35 @@ async function startGame() {
 function listenToGameState() {
   onSnapshot(doc(db, "gameState", "main"), (docSnap) => {
     if (docSnap.exists() && docSnap.data().started) {
-      document.getElementById("lobby").classList.add("hidden");
-      document.getElementById("questionScreen").classList.remove("hidden");
-      loadQuestion();
+      document.getElementById("waitingMessage").classList.add("hidden");
+      startCountdown();
     }
   });
 }
+
+function startCountdown() {
+  const lobby = document.getElementById("lobby");
+  const countdown = document.createElement("h2");
+  countdown.id = "countdown";
+  lobby.appendChild(countdown);
+
+  let count = 3;
+  countdown.textContent = `Game starts in ${count}...`;
+
+  const interval = setInterval(() => {
+    count--;
+    if (count > 0) {
+      countdown.textContent = `Game starts in ${count}...`;
+    } else {
+      clearInterval(interval);
+      countdown.remove();
+      lobby.classList.add("hidden");
+      document.getElementById("questionScreen").classList.remove("hidden");
+      loadQuestion();
+    }
+  }, 1000);
+}
+
 
 // Load current question
 function loadQuestion() {

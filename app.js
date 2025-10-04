@@ -32,18 +32,31 @@ let currentQuestion = 0;
 
 // Join the lobby
 export async function joinLobby() {
-  const name = document.getElementById("displayName").value;
+  if (playerId) return alert("You’ve already joined the game.");
+
+  const name = document.getElementById("displayName").value.trim();
   if (!name) return alert("Please enter a name");
 
-  const playersSnap = await getDocs(collection(db, "players"));
-  isHost = playersSnap.empty;
+  // Check if name already exists
+  const existing = await getDocs(query(collection(db, "players"), where("name", "==", name)));
+  if (!existing.empty) return alert("That name is already taken. Try another.");
 
+  // Check if anyone is already in the lobby
+  const playersSnap = await getDocs(collection(db, "players"));
+  const isFirstPlayer = playersSnap.empty;
+
+  // Add player to Firestore
   const playerRef = await addDoc(collection(db, "players"), {
     name,
-    isHost
+    isHost: isFirstPlayer
   });
   playerId = playerRef.id;
 
+  // Retrieve host status from Firestore (in case of reload or multiple joins)
+  const playerDoc = await getDoc(doc(db, "players", playerId));
+  isHost = playerDoc.data().isHost;
+
+  // If host, initialize game state and show buttons
   if (isHost) {
     await setDoc(doc(db, "gameState", "main"), { started: false });
     showStartButton();
@@ -196,4 +209,5 @@ async function showResults() {
     resultsDiv.appendChild(resultText);
   }
 }
+document.getElementById("joinButton").addEventListener("click", joinLobby);
 document.getElementById("joinButton").addEventListener("click", joinLobby);

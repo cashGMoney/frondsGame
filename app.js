@@ -34,45 +34,49 @@ let currentQuestion = 0;
 
 // Join the lobby
 export async function joinLobby() {
-  if (playerId) return alert("You’ve already joined the game.");
+  try {
+    if (playerId) return alert("You’ve already joined the game.");
 
-  const name = document.getElementById("displayName").value.trim();
-  if (!name) return alert("Please enter a name");
+    const name = document.getElementById("displayName").value.trim();
+    if (!name) return alert("Please enter a name");
 
-  // Check if name already exists
-  const existing = await getDocs(query(collection(db, "players"), where("name", "==", name)));
-  if (!existing.empty) return alert("That name is already taken. Try another.");
+    // Check if name already exists
+    const existing = await getDocs(query(collection(db, "players"), where("name", "==", name)));
+    if (!existing.empty) return alert("That name is already taken. Try another.");
 
-  // Check if anyone is already in the lobby
-  const playersSnap = await getDocs(collection(db, "players"));
-  const isFirstPlayer = playersSnap.empty;
+    // Check if anyone is already in the lobby
+    const playersSnap = await getDocs(collection(db, "players"));
+    const isFirstPlayer = playersSnap.empty;
 
-  // Add player to Firestore
-  const playerRef = await addDoc(collection(db, "players"), {
-    name,
-    isHost: isFirstPlayer
-  });
-  playerId = playerRef.id;
+    // Add player to Firestore
+    const playerRef = await addDoc(collection(db, "players"), {
+      name,
+      isHost: isFirstPlayer
+    });
+    console.log("✅ Player added:", playerRef.id);
+    playerId = playerRef.id;
 
-  // Retrieve host status from Firestore (in case of reload or multiple joins)
-  const playerDoc = await getDoc(doc(db, "players", playerId));
-  isHost = playerDoc.data().isHost;
+    // Retrieve host status from Firestore
+    const playerDoc = await getDoc(doc(db, "players", playerId));
+    isHost = playerDoc.data().isHost;
 
-  // If host, initialize game state and show buttons
-  if (isHost) {
-  await setDoc(doc(db, "gameState", "main"), { started: false });
-  showStartButton();
-  showResetButton();
-  document.getElementById("resetButton").classList.remove("hidden"); // ✅ Host sees it
-} else {
-  document.getElementById("waitingMessage").classList.remove("hidden");
-  document.getElementById("resetButton").classList.add("hidden"); // ✅ Non-hosts don't see it
-}
+    // Show host controls
+    if (isHost) {
+      await setDoc(doc(db, "gameState", "main"), { started: false });
+      showStartButton();
+      showResetButton();
+      document.getElementById("resetButton").classList.remove("hidden");
+    } else {
+      document.getElementById("waitingMessage").classList.remove("hidden");
+      document.getElementById("resetButton").classList.add("hidden");
+    }
 
-  
-
-  listenToPlayers();
-  listenToGameState();
+    listenToPlayers();
+    listenToGameState();
+  } catch (error) {
+    console.error("❌ Error joining lobby:", error);
+    alert("Something went wrong while joining. Check the console for details.");
+  }
 }
 
 // Show list of players

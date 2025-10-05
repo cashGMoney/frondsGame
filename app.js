@@ -60,12 +60,15 @@ export async function joinLobby() {
 
   // If host, initialize game state and show buttons
   if (isHost) {
-    await setDoc(doc(db, "gameState", "main"), { started: false });
-    showStartButton();
-    showResetButton();
-  } else {
-    document.getElementById("waitingMessage").classList.remove("hidden");
-  }
+  await setDoc(doc(db, "gameState", "main"), { started: false });
+  showStartButton();
+  showResetButton();
+  document.getElementById("resetButton").classList.remove("hidden"); // ✅ Host sees it
+} else {
+  document.getElementById("waitingMessage").classList.remove("hidden");
+}
+
+  
 
   listenToPlayers();
   listenToGameState();
@@ -212,3 +215,4 @@ async function showResults() {
   }
 }
 document.getElementById("joinButton").addEventListener("click", joinLobby);
+document.getElementById("resetButton").addEventListener("click", resetGame);

@@ -1,5 +1,4 @@
 /* app.js */
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
 import {
   getFirestore,
   collection,
@@ -7,6 +6,7 @@ import {
   setDoc,
   doc,
   getDocs,
+  getDoc, // ✅ Add this line
   deleteDoc,
   updateDoc,
   onSnapshot,
@@ -209,5 +209,4 @@ async function showResults() {
     resultsDiv.appendChild(resultText);
   }
 }
-document.getElementById("joinButton").addEventListener("click", joinLobby);
 document.getElementById("joinButton").addEventListener("click", joinLobby);

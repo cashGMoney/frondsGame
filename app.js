@@ -66,6 +66,7 @@ export async function joinLobby() {
   document.getElementById("resetButton").classList.remove("hidden"); // ✅ Host sees it
 } else {
   document.getElementById("waitingMessage").classList.remove("hidden");
+  document.getElementById("resetButton").classList.add("hidden"); // ✅ Non-hosts don't see it
 }
 
   
